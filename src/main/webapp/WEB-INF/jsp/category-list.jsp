@@ -11,9 +11,16 @@
 	content="width=device-width, initial-scale=1.0, user-scalable=yes" />
 <title>${categoryName}·DevSheets</title>
 
+<!-- Bootstrap 5 CSS - Use multiple CDN sources for reliability -->
+<link
+	href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css"
+	rel="stylesheet" />
+<!-- Fallback CSS if cdnjs fails -->
 <link
 	href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
 	rel="stylesheet" />
+
+<!-- Font Awesome -->
 <link rel="stylesheet"
 	href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
@@ -68,6 +75,15 @@ body {
 	box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
 }
 
+.sheet-card.banned {
+	background: #fff5f5;
+	border: 1px solid #fcc;
+}
+
+.sheet-card.banned .card-title {
+	color: #dc3545;
+}
+
 /* Card Image */
 .sheet-card .card-img-top {
 	height: 200px;
@@ -117,6 +133,11 @@ body {
 
 .status-badge.archived {
 	background: #fbe9e7;
+	color: #c62828;
+}
+
+.status-badge.banned {
+	background: #ffebee;
 	color: #c62828;
 }
 
@@ -341,7 +362,7 @@ body {
 	margin: 4px 0;
 }
 
-/* Report button in dropdown - make it stand out */
+/* Report button in dropdown */
 .dropdown-item-report {
 	color: #dc3545 !important;
 	font-weight: 600;
@@ -404,6 +425,29 @@ body {
 	color: #ff4d4f;
 }
 
+/* Alert animation */
+.alert-custom {
+	border-radius: 16px;
+	border: none;
+	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+	animation: slideDown 0.5s ease-out;
+}
+
+@
+keyframes slideDown {from { opacity:0;
+	transform: translateY(-20px);
+}
+
+to {
+	opacity: 1;
+	transform: translateY(0);
+}
+
+}
+.alert-custom .btn-close {
+	padding: 1rem;
+}
+
 /* Responsive */
 @media ( max-width : 992px) {
 	.main-content {
@@ -422,19 +466,103 @@ body {
 	.card-title {
 		font-size: 1rem;
 	}
+	.sheet-card .card-img-top {
+		height: 150px;
+	}
+}
+
+/* Loading spinner */
+.loading-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: rgba(255, 255, 255, 0.8);
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	z-index: 9999;
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 0.3s;
+}
+
+.loading-overlay.show {
+	opacity: 1;
+	pointer-events: all;
+}
+
+.spinner-custom {
+	width: 50px;
+	height: 50px;
+	border: 4px solid #f0f0f0;
+	border-top: 4px solid #1a1a1a;
+	border-radius: 50%;
+	animation: spin 0.8s linear infinite;
+}
+
+@
+keyframes spin { 0% {
+	transform: rotate(0deg);
+}
+
+100
+%
+{
+transform
+:
+rotate(
+360deg
+);
+}
+}
+
+/* Pagination styles */
+.pagination .page-link {
+	color: #1a1a1a;
+	border-radius: 8px;
+	margin: 0 3px;
+	border: 1px solid #e8e8e8;
+}
+
+.pagination .page-link:hover {
+	background-color: #f5f5f5;
+	border-color: #d0d0d0;
+}
+
+.pagination .page-item.active .page-link {
+	background: #1a1a1a;
+	border-color: #1a1a1a;
+	color: white;
+}
+
+.pagination .page-item.disabled .page-link {
+	color: #ccc;
+	pointer-events: none;
 }
 </style>
 </head>
 <body>
 
+	<!-- Loading Overlay -->
+	<div class="loading-overlay" id="loadingOverlay">
+		<div class="spinner-custom"></div>
+	</div>
+
+	<!-- Include sidebar -->
 	<jsp:include page="sidebar.jsp">
-		<jsp:param name="activePage" value="categories" />
+		<jsp:param name="activePage" value="home" />
 	</jsp:include>
 
+	<!-- Main Content -->
 	<div class="main-content">
 
-		<div id="alertContainer"></div>
+		<!-- Alert Container -->
+		<div id="alertContainer"
+			style="position: sticky; top: 20px; z-index: 999;"></div>
 
+		<!-- Page Header -->
 		<div
 			class="d-flex flex-wrap justify-content-between align-items-center mb-4">
 			<div>
@@ -442,32 +570,51 @@ body {
 					<i class="fa-regular fa-folder-open me-2"></i>${categoryName}
 				</h3>
 				<p class="text-muted small mt-1">
-					စုစုပေါင်း Cheat Sheet <span
-						class="badge bg-secondary-subtle text-dark fw-bold px-2 rounded-pill">${sheets.size()}</span>
+					<i class="fa-regular fa-file-lines me-1"></i> စုစုပေါင်း Cheat
+					Sheet <span
+						class="badge bg-secondary-subtle text-dark fw-bold px-2 rounded-pill">${totalItems}</span>
 					စောင် ရှာဖွေတွေ့ရှိပါတယ်။
 				</p>
 			</div>
-			<div>
+			<div class="d-flex gap-2 mt-2 mt-md-0">
 				<a
 					href="${pageContext.request.contextPath}/cheatsheets/new?prefCat=${categoryName}"
 					class="btn btn-primary-custom"> <i
 					class="fa-solid fa-plus me-2"></i>Add New Sheet
 				</a>
+				<button onclick="location.reload()"
+					class="btn btn-outline-secondary rounded-pill px-3 fw-semibold">
+					<i class="fa-solid fa-rotate me-1"></i> Refresh
+				</button>
 			</div>
 		</div>
 
+		<!-- Sheets Grid -->
 		<div class="row g-4">
 			<c:forEach items="${sheets}" var="sheet">
 				<div class="col-md-6 col-lg-4">
-					<div class="sheet-card">
+					<div class="sheet-card ${sheet.status eq 'banned' ? 'banned' : ''}">
 
-						<c:if test="${not empty sheet.fileUrl}">
-							<img src="${pageContext.request.contextPath}${sheet.fileUrl}"
-								class="card-img-top" alt="${sheet.title}"
-								onerror="this.style.display='none'" />
-						</c:if>
+						<!-- ===== IMAGE - FIXED (Single instance) ===== -->
+						<c:choose>
+							<c:when test="${not empty sheet.fileUrl}">
+								<img
+									src="${pageContext.request.contextPath}/uploads/${sheet.fileUrl}"
+									class="card-img-top" alt="${fn:escapeXml(sheet.title)}"
+									onerror="this.style.display='none'" loading="lazy" />
+							</c:when>
+							<c:otherwise>
+								<div
+									class="card-img-top bg-light d-flex align-items-center justify-content-center"
+									style="height: 200px;">
+									<i class="fa-regular fa-file-image fa-3x text-muted"></i>
+								</div>
+							</c:otherwise>
+						</c:choose>
 
+						<!-- Card Body -->
 						<div class="card-body">
+							<!-- Header: Status + Category -->
 							<div
 								class="d-flex justify-content-between align-items-center mb-2">
 								<span class="status-badge ${sheet.status}"> <i
@@ -477,8 +624,12 @@ body {
 								</span>
 							</div>
 
-							<h5 class="card-title line-clamp-1">${fn:escapeXml(sheet.title)}</h5>
+							<!-- Title -->
+							<h5 class="card-title line-clamp-1"
+								title="${fn:escapeXml(sheet.title)}">
+								${fn:escapeXml(sheet.title)}</h5>
 
+							<!-- Content Preview - TEXT ONLY (Image already shown above) -->
 							<p class="content-preview">
 								<c:choose>
 									<c:when test="${not empty sheet.content}">
@@ -492,6 +643,7 @@ body {
 								</c:choose>
 							</p>
 
+							<!-- Tags -->
 							<div class="tags-container">
 								<c:forEach var="tag" items="${sheet.tags}">
 									<span class="tag-badge"> <i
@@ -504,6 +656,7 @@ body {
 								</c:if>
 							</div>
 
+							<!-- Meta Info -->
 							<div class="meta-info">
 								<span> <i class="fa-regular fa-user"></i> <a
 									href="${pageContext.request.contextPath}/user/profile/${sheet.user.userId}"
@@ -524,18 +677,17 @@ body {
 								</c:if>
 							</div>
 
+							<!-- Interaction Buttons -->
 							<div class="d-flex justify-content-between align-items-center">
 								<div class="interaction-buttons">
 									<button class="btn-interaction"
 										onclick="toggleLike(${sheet.id}, this)">
-										<i class="fa-regular fa-heart"></i> <span class="count">0</span>
+										<i class="fa-regular fa-heart"></i> <span class="count">${sheet.likeCount != null ? sheet.likeCount : 0}</span>
 									</button>
-
 									<button class="btn-interaction"
 										onclick="openComments(${sheet.id})">
-										<i class="fa-regular fa-comment"></i> <span class="count">0</span>
+										<i class="fa-regular fa-comment"></i> <span class="count">${sheet.commentCount != null ? sheet.commentCount : 0}</span>
 									</button>
-
 									<button class="btn-interaction"
 										onclick="toggleBookmark(${sheet.id}, this)">
 										<i class="fa-regular fa-bookmark"></i>
@@ -563,19 +715,22 @@ body {
 												class="fa-regular fa-user-plus me-2"></i> Follow Author
 										</a></li>
 										<li><a class="dropdown-item"
-											href="${pageContext.request.contextPath}/cheatsheets/view/${sheet.id}">
+											href="${pageContext.request.contextPath}/cheatsheets/rate/${sheet.id}">
 												<i class="fa-regular fa-star me-2"></i> Rate this Sheet
 										</a></li>
-										<li><hr class="dropdown-divider"></li>
-										<li><a class="dropdown-item dropdown-item-report"
-											onclick="openReportModal(${sheet.id}, '${fn:escapeXml(sheet.title)}')">
-												<i class="fa-solid fa-flag me-2"></i> Report
-										</a></li>
+										<c:if test="${sheet.status ne 'banned'}">
+											<li><hr class="dropdown-divider"></li>
+											<li><a class="dropdown-item dropdown-item-report"
+												onclick="openReportModal(${sheet.id}, '${fn:escapeXml(sheet.title)}')">
+													<i class="fa-solid fa-flag me-2"></i> Report
+											</a></li>
+										</c:if>
 									</ul>
 								</div>
 							</div>
 						</div>
 
+						<!-- Card Footer -->
 						<div class="card-footer-custom">
 							<div class="d-flex gap-2 w-100 flex-wrap">
 								<a
@@ -588,17 +743,20 @@ body {
 									class="btn btn-outline-custom btn-action-sm flex-grow-1 text-center">
 									<i class="fa-regular fa-copy me-1"></i> Copy
 								</button>
-								<button type="button"
-									onclick="openReportModal(${sheet.id}, '${fn:escapeXml(sheet.title)}')"
-									class="btn btn-report-sm" title="Report this sheet">
-									<i class="fa-solid fa-flag me-1"></i> Report
-								</button>
+								<c:if test="${sheet.status ne 'banned'}">
+									<button type="button"
+										onclick="openReportModal(${sheet.id}, '${fn:escapeXml(sheet.title)}')"
+										class="btn btn-report-sm" title="Report this sheet">
+										<i class="fa-solid fa-flag me-1"></i> Report
+									</button>
+								</c:if>
 							</div>
 						</div>
 					</div>
 				</div>
 			</c:forEach>
 
+			<!-- Empty State -->
 			<c:if test="${empty sheets}">
 				<div class="col-12">
 					<div class="empty-state">
@@ -615,8 +773,41 @@ body {
 				</div>
 			</c:if>
 		</div>
+
+		<!-- ===== PAGINATION ===== -->
+		<c:if test="${totalPages > 1}">
+			<nav aria-label="Page navigation" class="mt-5">
+				<ul class="pagination justify-content-center">
+					<!-- Previous Page -->
+					<li class="page-item ${currentPage == 1 ? 'disabled' : ''}"><a
+						class="page-link" href="?page=${currentPage - 1}&size=${pageSize}"
+						aria-label="Previous"> <i class="fa-solid fa-chevron-left"></i>
+					</a></li>
+
+					<!-- Page Numbers -->
+					<c:forEach begin="1" end="${totalPages}" var="i">
+						<li class="page-item ${currentPage == i ? 'active' : ''}"><a
+							class="page-link" href="?page=${i}&size=${pageSize}">${i}</a></li>
+					</c:forEach>
+
+					<!-- Next Page -->
+					<li
+						class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
+						<a class="page-link"
+						href="?page=${currentPage + 1}&size=${pageSize}" aria-label="Next">
+							<i class="fa-solid fa-chevron-right"></i>
+					</a>
+					</li>
+				</ul>
+			</nav>
+
+			<!-- Page Info -->
+			<div class="text-center text-muted small mt-2">Showing page
+				${currentPage} of ${totalPages} (${totalItems} total items)</div>
+		</c:if>
 	</div>
 
+	<!-- Report Modal -->
 	<div class="modal fade" id="reportModal" data-bs-backdrop="static"
 		data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
 		<div class="modal-dialog modal-dialog-centered">
@@ -633,14 +824,17 @@ body {
 				<form id="reportForm" onsubmit="submitReportAsync(event)">
 					<div class="modal-body px-4 pb-3">
 						<p class="text-muted small mb-3">
-							စာရွက်ခေါင်းစဉ် - <strong class="text-dark" id="modalSheetTitle"></strong>
+							<i class="fa-regular fa-file-code me-1"></i> စာရွက်ခေါင်းစဉ် - <strong
+								class="text-dark" id="modalSheetTitle"></strong>
 						</p>
 						<input type="hidden" id="modalCheatsheetId" name="cheatsheetId"
 							value="" />
 
 						<div class="mb-3">
-							<label class="form-label fw-semibold text-secondary small">အကြောင်းအရင်း
-								ရွေးချယ်ပါ</label>
+							<label class="form-label fw-semibold text-secondary small">
+								<i class="fa-regular fa-circle-list me-1"></i> အကြောင်းအရင်း
+								ရွေးချယ်ပါ
+							</label>
 							<div class="d-flex flex-wrap gap-2">
 								<button type="button" class="report-reason-btn"
 									data-reason="Inappropriate Content">
@@ -672,18 +866,26 @@ body {
 						</div>
 
 						<div class="mb-3">
-							<label class="form-label fw-semibold text-secondary small">အသေးစိတ်
-								ဖော်ပြချက်</label>
+							<label class="form-label fw-semibold text-secondary small">
+								<i class="fa-regular fa-pen-to-square me-1"></i> အသေးစိတ်
+								ဖော်ပြချက်
+							</label>
 							<textarea class="form-control rounded-3" id="reason"
 								name="reason" rows="4"
 								placeholder="ကျေးဇူးပြု၍ အကြောင်းအရင်းကို အသေးစိတ် ဖော်ပြပါ..."
 								required></textarea>
+							<div class="form-text">
+								<i class="fa-regular fa-circle-info me-1"></i> အနည်းဆုံး ၁၀
+								လုံးထက်ပို၍ ဖြည့်သွင်းပါ။
+							</div>
 						</div>
 					</div>
 					<div class="modal-footer border-0 pt-0 px-4 pb-4">
 						<button type="button"
 							class="btn btn-light rounded-pill px-4 btn-sm fw-semibold"
-							data-bs-dismiss="modal">Cancel</button>
+							data-bs-dismiss="modal">
+							<i class="fa-regular fa-xmark me-1"></i>Cancel
+						</button>
 						<button type="submit"
 							class="btn btn-danger rounded-pill px-4 btn-sm fw-semibold">
 							<i class="fa-regular fa-paper-plane me-1"></i>Submit Report
@@ -694,18 +896,41 @@ body {
 		</div>
 	</div>
 
+	<!-- Bootstrap JS - Use cdnjs with fallback -->
 	<script
-		src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js">
+		src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js">
+    </script>
+	<!-- Fallback if cdnjs fails -->
+	<script>
+        if (typeof bootstrap === 'undefined') {
+            document.write('<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"><\/script>');
+        }
     </script>
 
 	<script>
         // ============ ALL FUNCTIONS ============
 
-        // Like toggle
+        /**
+         * Show loading overlay
+         */
+        function showLoading() {
+            document.getElementById('loadingOverlay').classList.add('show');
+        }
+
+        /**
+         * Hide loading overlay
+         */
+        function hideLoading() {
+            document.getElementById('loadingOverlay').classList.remove('show');
+        }
+
+        /**
+         * Like toggle with AJAX
+         */
         function toggleLike(sheetId, element) {
             var icon = element.querySelector('i');
             var countSpan = element.querySelector('.count');
-            var count = parseInt(countSpan.textContent);
+            var count = parseInt(countSpan.textContent) || 0;
             
             if (icon.classList.contains('fa-regular')) {
                 icon.classList.remove('fa-regular');
@@ -720,7 +945,6 @@ body {
             }
             countSpan.textContent = count;
             
-            // AJAX call to update like count
             fetch('${pageContext.request.contextPath}/cheatsheets/like/' + sheetId, {
                 method: 'POST',
                 headers: {
@@ -736,7 +960,9 @@ body {
             .catch(function(error) { console.error('Error:', error); });
         }
 
-        // Bookmark toggle
+        /**
+         * Bookmark toggle with AJAX
+         */
         function toggleBookmark(sheetId, element) {
             var icon = element.querySelector('i');
             
@@ -762,12 +988,16 @@ body {
             .catch(function(error) { console.error('Error:', error); });
         }
 
-        // Follow author
+        /**
+         * Follow author with AJAX
+         */
         function followAuthor(userId) {
             if (!userId) {
-                alert('User information not available.');
+                showAlert('warning', 'User information not available.');
                 return;
             }
+            
+            showLoading();
             
             fetch('${pageContext.request.contextPath}/user/follow/' + userId, {
                 method: 'POST',
@@ -776,33 +1006,39 @@ body {
                 }
             })
             .then(function(response) {
+                hideLoading();
                 if (response.ok) {
-                    showAlert('success', 'Successfully followed the author!');
+                    showAlert('success', '✅ Successfully followed the author!');
                 } else {
-                    showAlert('danger', 'Failed to follow the author.');
+                    showAlert('danger', '❌ Failed to follow the author.');
                 }
             })
             .catch(function(error) {
+                hideLoading();
                 console.error('Error:', error);
-                showAlert('danger', 'An error occurred.');
+                showAlert('danger', '❌ An error occurred.');
             });
         }
 
-        // Open comments
+        /**
+         * Open comments page
+         */
         function openComments(sheetId) {
             window.location.href = '${pageContext.request.contextPath}/cheatsheets/comments/' + sheetId;
         }
 
-        // Copy to Clipboard
+        /**
+         * Copy to Clipboard with modern and fallback methods
+         */
         function copyToClipboard(content, title) {
             if (!content || content.trim() === '' || content === 'null') {
-                alert("ကူးယူရန် အကြောင်းအရာ (Content) မရှိပါဗျာ။");
+                showAlert('warning', '⚠️ ကူးယူရန် အကြောင်းအရာ (Content) မရှိပါဗျာ။');
                 return;
             }
             
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(content).then(function() {
-                    showAlert('success', '"' + title + '" content copied to clipboard!');
+                    showAlert('success', '✅ "' + title + '" content copied to clipboard!');
                 }).catch(function(err) {
                     console.error('Could not copy text: ', err);
                     copyToClipboardFallback(content, title);
@@ -812,6 +1048,9 @@ body {
             }
         }
 
+        /**
+         * Fallback copy method
+         */
         function copyToClipboardFallback(content, title) {
             var textarea = document.createElement('textarea');
             textarea.value = content;
@@ -821,50 +1060,76 @@ body {
             textarea.select();
             try {
                 document.execCommand('copy');
-                showAlert('success', '"' + title + '" content copied to clipboard!');
+                showAlert('success', '✅ "' + title + '" content copied to clipboard!');
             } catch (err) {
-                alert("Copy ကူးယူခြင်း မအောင်မြင်ပါဗျာ။");
+                showAlert('danger', '❌ Copy ကူးယူခြင်း မအောင်မြင်ပါဗျာ။');
             }
             document.body.removeChild(textarea);
         }
 
-        // Show alert
+        /**
+         * Show alert with auto-dismiss
+         */
         function showAlert(type, message) {
+            var container = document.getElementById('alertContainer');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'alertContainer';
+                container.style.position = 'sticky';
+                container.style.top = '20px';
+                container.style.zIndex = '999';
+                document.querySelector('.main-content').prepend(container);
+            }
+            
             var iconClass = '';
             if (type === 'success') {
                 iconClass = 'fa-circle-check text-success';
+            } else if (type === 'warning') {
+                iconClass = 'fa-circle-exclamation text-warning';
             } else {
                 iconClass = 'fa-circle-exclamation text-danger';
             }
             
-            var alertHtml = '<div class="alert alert-' + type + ' alert-dismissible fade show border-0 shadow-sm rounded-4 mb-4" role="alert">' +
+            var alertHtml = '<div class="alert alert-' + type + ' alert-dismissible fade show border-0 shadow-sm rounded-4 mb-4 alert-custom" role="alert">' +
                 '<div class="d-flex align-items-center gap-2">' +
                 '<i class="fa-solid ' + iconClass + ' fs-5"></i>' +
                 '<span class="fw-semibold">' + message + '</span>' +
                 '</div>' +
-                '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
+                '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>' +
                 '</div>';
             
-            var container = document.getElementById('alertContainer');
-            if (container) {
-                container.innerHTML = alertHtml;
-                window.scrollTo({top: 0, behavior: 'smooth'});
-                
-                // Auto dismiss after 5 seconds
-                setTimeout(function() {
-                    var alert = container.querySelector('.alert');
-                    if (alert) {
-                        var bsAlert = new bootstrap.Alert(alert);
-                        bsAlert.close();
-                    }
-                }, 5000);
-            }
+            container.innerHTML = alertHtml;
+            
+            // Auto dismiss after 5 seconds
+            setTimeout(function() {
+                var alert = container.querySelector('.alert');
+                if (alert) {
+                    var bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }
+            }, 5000);
         }
 
-        // Open Report Modal
+        /**
+         * Open Report Modal
+         */
         function openReportModal(sheetId, sheetTitle) {
+            // Check if Bootstrap is loaded
+            if (typeof bootstrap === 'undefined') {
+                console.error('Bootstrap is not loaded. Trying to load it...');
+                // Try to load Bootstrap dynamically
+                var script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js';
+                script.onload = function() {
+                    // Retry opening modal after Bootstrap loads
+                    openReportModal(sheetId, sheetTitle);
+                };
+                document.head.appendChild(script);
+                return;
+            }
+            
             document.getElementById('modalCheatsheetId').value = sheetId;
-            document.getElementById('modalSheetTitle').innerText = sheetTitle;
+            document.getElementById('modalSheetTitle').innerText = sheetTitle || 'Unknown Sheet';
             document.getElementById('reason').value = '';
             
             // Reset all reason buttons
@@ -873,18 +1138,26 @@ body {
                 reasonBtns[i].classList.remove('active');
             }
             
-            var myModal = new bootstrap.Modal(document.getElementById('reportModal'));
+            var modalElement = document.getElementById('reportModal');
+            var myModal = new bootstrap.Modal(modalElement);
             myModal.show();
         }
 
-        // Submit Report
+        /**
+         * Submit Report with AJAX
+         */
         function submitReportAsync(event) {
             event.preventDefault();
             var sheetId = document.getElementById('modalCheatsheetId').value;
             var reasonVal = document.getElementById('reason').value.trim();
             
             if (!reasonVal) {
-                alert('ကျေးဇူးပြု၍ အကြောင်းအရင်းကို ဖြည့်သွင်းပါ။');
+                showAlert('warning', '⚠️ ကျေးဇူးပြု၍ အကြောင်းအရင်းကို ဖြည့်သွင်းပါ။');
+                return;
+            }
+            
+            if (reasonVal.length < 10) {
+                showAlert('warning', '⚠️ အနည်းဆုံး ၁၀ လုံးထက်ပို၍ ဖြည့်သွင်းပါ။');
                 return;
             }
             
@@ -914,23 +1187,28 @@ body {
                 document.getElementById('reason').value = '';
                 
                 if (data.success) {
-                    showAlert('success', data.message || 'တိုင်ကြားချက်ကို အောင်မြင်စွာ ပေးပို့ပြီးပါပြီ။');
+                    showAlert('success', '✅ ' + (data.message || 'တိုင်ကြားချက်ကို အောင်မြင်စွာ ပေးပို့ပြီးပါပြီ။ Admin မှ မကြာမီ စစ်ဆေးပေးပါမည်။'));
                 } else {
-                    showAlert('danger', data.message || 'Failed to submit report.');
+                    showAlert('danger', '❌ ' + (data.message || 'Failed to submit report.'));
                 }
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalText;
             })
             .catch(function(error) {
                 console.error('Error submitting report:', error);
-                // If fetch fails, submit the form normally as fallback
+                showAlert('warning', '⚠️ Submitting report via form...');
                 var form = document.getElementById('reportForm');
                 form.submit();
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
             });
         }
 
-        // Quick reason button click handler
+        /**
+         * Initialize on DOM load
+         */
         document.addEventListener('DOMContentLoaded', function() {
+            // Quick reason button click handler
             var reasonBtns = document.querySelectorAll('.report-reason-btn');
             for (var i = 0; i < reasonBtns.length; i++) {
                 reasonBtns[i].addEventListener('click', function() {
@@ -950,6 +1228,8 @@ body {
             images.forEach(function(img) {
                 console.log('Image src:', img.src);
             });
+            
+            console.log('Category list page initialized successfully');
         });
     </script>
 </body>

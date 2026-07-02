@@ -13,7 +13,7 @@
 		<property name="driverClassName" value="com.mysql.cj.jdbc.Driver" />
 		<property name="url" value="jdbc:mysql://localhost:3306/ojt20_hibernate" />
 		<property name="username" value="root" />
-		<property name="password" value="12345" />
+		<property name="password" value="321967429" />
 	</bean>
 
 	<bean id="sessionFactory" class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
@@ -37,8 +37,8 @@
 	<bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
 <property name="host" value="smtp.gmail.com"/>
 <property name="port" value="587"/>
-<property name="username" value="skystar562001@gmail.com"/>
-<property name="password" value="lkqb kbfo lnkg zage"/>
+<property name="username" value="ghost321967429@gmail.com"/>
+<property name="password" value="jhzs lnhn vmxg lof"/>
 <property name="javaMailProperties">
 <props>
 <prop key="mail.transport.protocol">smtp</prop>
