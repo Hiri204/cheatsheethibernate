@@ -39,7 +39,7 @@ public class User {
 	@Column(name = "profile_img", length = 255)
 	private String profileImg;
 
-	@Column(name = "status", columnDefinition = "ENUM('active', 'suspended') DEFAULT 'active'")
+	@Column(name = "status", columnDefinition = "ENUM('active', 'suspended', 'inactive') DEFAULT 'active'")
 	private String status;
 
 	@Column(name = "created_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP", updatable = false)
@@ -53,18 +53,43 @@ public class User {
 	@Column(name = "deleted_at", columnDefinition = "TIMESTAMP NULL DEFAULT NULL")
 	private LocalDateTime deletedAt;
 
-	// new code for email reset
+	// ===== Password Reset Fields =====
 	@Column(name = "reset_code", length = 10)
 	private String resetCode;
 
-	@Column(name = "expiry_date")
-	private LocalDateTime expiryDate;
+	@Column(name = "reset_code_expiry")
+	private LocalDateTime resetCodeExpiry;
 
-	// Constructors
+	// ===== Suspension Fields =====
+	@Column(name = "suspension_reason", length = 500)
+	private String suspensionReason;
+
+	@Column(name = "suspended_at")
+	private LocalDateTime suspendedAt;
+
+	@Column(name = "last_login_at")
+	private LocalDateTime lastLoginAt;
+
+	// ===== Transient Fields (not persisted in database) =====
+	@Transient
+	private Long followerCount;
+
+	@Transient
+	private Long followingCount;
+
+	// ===== Constructors =====
 	public User() {
 	}
 
-	// Getters and Setters
+	public User(String username, String email, String passwordHash) {
+		this.username = username;
+		this.email = email;
+		this.passwordHash = passwordHash;
+		this.status = "active";
+		this.role = "user";
+	}
+
+	// ===== Getters and Setters =====
 	public Integer getUserId() {
 		return userId;
 	}
@@ -153,14 +178,46 @@ public class User {
 		this.deletedAt = deletedAt;
 	}
 
-	// Add these to User.java
-	@Transient
-	private Long followerCount;
+	public String getResetCode() {
+		return resetCode;
+	}
 
-	@Transient
-	private Long followingCount;
+	public void setResetCode(String resetCode) {
+		this.resetCode = resetCode;
+	}
 
-	// Getters and setters
+	public LocalDateTime getResetCodeExpiry() {
+		return resetCodeExpiry;
+	}
+
+	public void setResetCodeExpiry(LocalDateTime resetCodeExpiry) {
+		this.resetCodeExpiry = resetCodeExpiry;
+	}
+
+	public String getSuspensionReason() {
+		return suspensionReason;
+	}
+
+	public void setSuspensionReason(String suspensionReason) {
+		this.suspensionReason = suspensionReason;
+	}
+
+	public LocalDateTime getSuspendedAt() {
+		return suspendedAt;
+	}
+
+	public void setSuspendedAt(LocalDateTime suspendedAt) {
+		this.suspendedAt = suspendedAt;
+	}
+
+	public LocalDateTime getLastLoginAt() {
+		return lastLoginAt;
+	}
+
+	public void setLastLoginAt(LocalDateTime lastLoginAt) {
+		this.lastLoginAt = lastLoginAt;
+	}
+
 	public Long getFollowerCount() {
 		return followerCount;
 	}
@@ -177,4 +234,31 @@ public class User {
 		this.followingCount = followingCount;
 	}
 
+	// ===== Helper Methods =====
+	public boolean isActive() {
+		return "active".equals(this.status);
+	}
+
+	public boolean isSuspended() {
+		return "suspended".equals(this.status);
+	}
+
+	public boolean isAdmin() {
+		return "admin".equals(this.role);
+	}
+
+	public boolean isDeleted() {
+		return this.deletedAt != null;
+	}
+
+	public boolean hasResetCode() {
+		return this.resetCode != null && this.resetCodeExpiry != null
+				&& this.resetCodeExpiry.isAfter(LocalDateTime.now());
+	}
+
+	@Override
+	public String toString() {
+		return String.format("User{userId=%d, username='%s', email='%s', role='%s', status='%s'}", userId, username,
+				email, role, status);
+	}
 }

@@ -8,7 +8,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Login | DevSheets</title>
 <link
-	href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+	href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css"
 	rel="stylesheet" />
 <link rel="stylesheet"
 	href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
@@ -25,6 +25,13 @@ body {
 	padding: 20px;
 }
 
+/* When modal is open, blur the background */
+body.modal-open .login-card {
+	filter: blur(4px);
+	pointer-events: none;
+	user-select: none;
+}
+
 .login-card {
 	background: rgba(255, 255, 255, 0.95);
 	backdrop-filter: blur(10px);
@@ -35,6 +42,7 @@ body {
 	max-width: 420px;
 	color: #1a1a1a;
 	box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+	transition: filter 0.3s ease;
 }
 
 .login-card h2 {
@@ -164,7 +172,7 @@ body {
 .modal-content-custom {
 	border-radius: 24px;
 	border: none;
-	box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+	box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
 	overflow: hidden;
 }
 
@@ -204,6 +212,7 @@ body {
 	border-radius: 20px;
 	font-weight: 600;
 	font-size: 0.85rem;
+	display: inline-block;
 }
 
 .ban-reason-box {
@@ -221,13 +230,14 @@ body {
 	text-transform: uppercase;
 	letter-spacing: 0.5px;
 	display: block;
-	margin-bottom: 4px;
+	margin-bottom: 8px;
 }
 
 .ban-reason-box .reason-text {
 	color: #1a1a1a;
 	font-weight: 500;
 	font-size: 0.95rem;
+	word-wrap: break-word;
 }
 
 .icon-danger {
@@ -235,6 +245,20 @@ body {
 	color: #dc3545;
 	display: block;
 	margin-bottom: 12px;
+}
+
+/* Fix for modal backdrop */
+.modal-backdrop {
+	backdrop-filter: blur(8px);
+}
+
+/* Ensure modal is on top */
+.modal {
+	z-index: 1050;
+}
+
+.modal-backdrop {
+	z-index: 1040;
 }
 
 @media ( max-width : 480px) {
@@ -273,7 +297,8 @@ body {
 			</div>
 		</c:if>
 
-		<form action="${pageContext.request.contextPath}/login" method="POST">
+		<form action="${pageContext.request.contextPath}/login" method="POST"
+			id="loginForm">
 			<div class="mb-3">
 				<label class="form-label">Email or Username</label> <input
 					type="text" name="username" class="form-control"
@@ -290,7 +315,7 @@ body {
 				</div>
 			</div>
 
-			<button type="submit" class="btn-sign-in mb-3">
+			<button type="submit" class="btn-sign-in mb-3" id="signInBtn">
 				<i class="fa-regular fa-arrow-right-to-bracket me-2"></i>Sign In
 			</button>
 		</form>
@@ -317,9 +342,8 @@ body {
 	</div>
 
 	<!-- 🛑 BANNED ACCOUNT MODAL -->
-	<div class="modal fade" id="bannedModal" tabindex="-1"
-		aria-labelledby="bannedModalLabel" aria-hidden="true"
-		data-bs-backdrop="static">
+	<div class="modal" id="bannedModal" tabindex="-1"
+		aria-labelledby="bannedModalLabel" data-bs-backdrop="static">
 		<div class="modal-dialog modal-dialog-centered">
 			<div class="modal-content modal-content-custom">
 
@@ -366,9 +390,8 @@ body {
 
 				<!-- Modal Footer -->
 				<div class="modal-footer modal-footer-custom justify-content-center">
-					<button type="button"
-						class="btn btn-danger px-5 rounded-pill fw-bold py-2 shadow-sm"
-						data-bs-dismiss="modal">
+					<button type="button" id="understandBtn"
+						class="btn btn-danger px-5 rounded-pill fw-bold py-2 shadow-sm">
 						<i class="fa-regular fa-check me-2"></i>I Understand
 					</button>
 				</div>
@@ -377,7 +400,9 @@ body {
 	</div>
 
 	<script
-		src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+		src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js">
+		
+	</script>
 
 	<script>
 		document.addEventListener("DOMContentLoaded", function() {
@@ -387,12 +412,62 @@ body {
 			if (isBanned === "true") {
 				var modalElement = document.getElementById('bannedModal');
 				if (modalElement) {
+					// Create modal instance
 					var myModal = new bootstrap.Modal(modalElement, {
 						backdrop : 'static',
 						keyboard : false
 					});
+
+					// Show modal
 					myModal.show();
+
+					// Disable login form
+					var loginForm = document.getElementById('loginForm');
+					if (loginForm) {
+						var inputs = loginForm
+								.querySelectorAll('input, button');
+						inputs.forEach(function(input) {
+							input.disabled = true;
+						});
+					}
+
+					// Focus on the "I Understand" button when modal is shown
+					modalElement.addEventListener('shown.bs.modal', function() {
+						document.getElementById('understandBtn').focus();
+					});
+
+					// When modal is hidden, redirect to login
+					modalElement.addEventListener('hidden.bs.modal',
+							function() {
+								// Re-enable login form
+								var loginForm = document
+										.getElementById('loginForm');
+								if (loginForm) {
+									var inputs = loginForm
+											.querySelectorAll('input, button');
+									inputs.forEach(function(input) {
+										input.disabled = false;
+									});
+								}
+								// Redirect to refresh the page
+								window.location.href = window.location.href
+										.split('?')[0];
+							});
 				}
+			}
+
+			// Handle "I Understand" button click
+			var understandBtn = document.getElementById('understandBtn');
+			if (understandBtn) {
+				understandBtn.addEventListener('click', function() {
+					var modalElement = document.getElementById('bannedModal');
+					if (modalElement) {
+						var modal = bootstrap.Modal.getInstance(modalElement);
+						if (modal) {
+							modal.hide();
+						}
+					}
+				});
 			}
 
 			// Auto-dismiss alerts after 5 seconds

@@ -9,11 +9,11 @@
 <meta charset="UTF-8" />
 <meta name="viewport"
 	content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-<title>${profileUser.username}· DevSheets</title>
+<title>${profileUser.username}·DevSheets</title>
 
 <!-- Bootstrap 5 CSS -->
 <link
-	href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+	href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css"
 	rel="stylesheet" />
 <!-- Font Awesome -->
 <link rel="stylesheet"
@@ -33,6 +33,11 @@ body {
 	padding: 40px 50px;
 	min-height: 100vh;
 	background: #f0f2f5;
+}
+
+/* Alert Container */
+#alertContainer {
+	margin-bottom: 20px;
 }
 
 .profile-header {
@@ -148,6 +153,24 @@ body {
 	color: #1a1a1a;
 }
 
+/* Image placeholder */
+.image-placeholder {
+	height: 160px;
+	background: #f5f5f5;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: #b0b0b0;
+	font-size: 0.9rem;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.image-placeholder i {
+	font-size: 3rem;
+	color: #d0d0d0;
+}
+
 @media ( max-width : 992px) {
 	.main-content {
 		margin-left: 0;
@@ -165,10 +188,14 @@ body {
 <body>
 
 	<jsp:include page="sidebar.jsp">
-		<jsp:param name="activePage" value="categories" />
+		<jsp:param name="activePage" value="home" />
 	</jsp:include>
 
 	<div class="main-content">
+
+		<!-- Alert Container -->
+		<div id="alertContainer"></div>
+
 		<div class="profile-header">
 			<div class="row align-items-center">
 				<div class="col-md-auto text-center text-md-start">
@@ -177,7 +204,10 @@ body {
 							test="${not empty profileUser.profileImg && profileUser.profileImg ne 'default-avatar.png'}">
 							<img
 								src="${pageContext.request.contextPath}/uploads/${profileUser.profileImg}"
-								class="avatar-large" alt="${profileUser.username}" />
+								class="avatar-large" alt="${profileUser.username}"
+								onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+							<div class="avatar-circle-large" style="display: none;">
+								${fn:toUpperCase(fn:substring(profileUser.username, 0, 1))}</div>
 						</c:when>
 						<c:otherwise>
 							<div class="avatar-circle-large">
@@ -221,7 +251,7 @@ body {
 			<div class="row mt-4 pt-3 border-top">
 				<div class="col-4 col-md-3">
 					<div class="stat-box">
-						<div class="stat-number">${sheetCount}</div>
+						<div class="stat-number">${sheetCount != null ? sheetCount : 0}</div>
 						<div class="stat-label">Sheets</div>
 					</div>
 				</div>
@@ -249,47 +279,58 @@ body {
 			<c:forEach items="${userSheets}" var="sheet">
 				<div class="col-md-6 col-lg-4">
 					<div class="sheet-card">
-						<c:if test="${not empty sheet.fileUrl}">
-							<img
-								src="${pageContext.request.contextPath}/uploads/${sheet.fileUrl}"
-								class="card-img-top" alt="${sheet.title}"
-								onerror="this.style.display='none'" />
-						</c:if>
-						<div class="card-body p-3">
-							<span class="badge bg-secondary-subtle text-secondary mb-2">
-								${sheet.category != null ? sheet.category.name : 'Uncategorized'}
-							</span>
-							<h6 class="fw-bold mb-1">${sheet.title}</h6>
-							<p class="text-muted small mb-2">
-								${fn:substring(sheet.content, 0, 80)}${fn:length(sheet.content) > 80 ? '...' : ''}
-							</p>
-							<div class="d-flex gap-2">
-								<a
-									href="${pageContext.request.contextPath}/cheatsheets/view/${sheet.id}"
-									class="btn btn-outline-custom flex-grow-1 text-center"> <i
-									class="fa-regular fa-eye me-1"></i> View
-								</a>
-								<button
-									onclick="copyToClipboard('${fn:escapeXml(sheet.content)}', '${fn:escapeXml(sheet.title)}')"
-									class="btn btn-outline-custom flex-grow-1 text-center">
-									<i class="fa-regular fa-copy me-1"></i> Copy
-								</button>
-							</div>
+						<!-- 🎯 FIXED: Image path -->
+						<c:choose>
+							<c:when test="${not empty sheet.fileUrl}">
+								<img src="${pageContext.request.contextPath}${sheet.fileUrl}"
+									class="card-img-top" alt="${sheet.title}"
+									onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\"image-placeholder\">
+								<i class=\"fa-regularfa-image\"></i>
+								<span>No Image</span>
+					</div>
+					'" />
+					</c:when>
+					<c:otherwise>
+						<div class="image-placeholder">
+							<i class="fa-regular fa-image"></i> <span>No Image</span>
+						</div>
+					</c:otherwise>
+					</c:choose>
+					<div class="card-body p-3">
+						<span class="badge bg-secondary-subtle text-secondary mb-2">
+							${sheet.category != null ? sheet.category.name : 'Uncategorized'}
+						</span>
+						<h6 class="fw-bold mb-1">${sheet.title}</h6>
+						<p class="text-muted small mb-2">
+							${fn:substring(sheet.content, 0, 80)}${fn:length(sheet.content) > 80 ? '...' : ''}
+						</p>
+						<div class="d-flex gap-2">
+							<a
+								href="${pageContext.request.contextPath}/cheatsheets/view/${sheet.id}"
+								class="btn btn-outline-custom flex-grow-1 text-center"> <i
+								class="fa-regular fa-eye me-1"></i> View
+							</a>
+							<button
+								onclick="copyToClipboard('${fn:escapeXml(sheet.content)}', '${fn:escapeXml(sheet.title)}')"
+								class="btn btn-outline-custom flex-grow-1 text-center">
+								<i class="fa-regular fa-copy me-1"></i> Copy
+							</button>
 						</div>
 					</div>
 				</div>
-			</c:forEach>
-			<c:if test="${empty userSheets}">
-				<div class="col-12 text-center py-5">
-					<i class="fa-regular fa-file-lines fa-3x text-muted mb-3"></i>
-					<p class="text-muted">No sheets published yet.</p>
-				</div>
-			</c:if>
 		</div>
+		</c:forEach>
+		<c:if test="${empty userSheets}">
+			<div class="col-12 text-center py-5">
+				<i class="fa-regular fa-file-lines fa-3x text-muted mb-3"></i>
+				<p class="text-muted">No sheets published yet.</p>
+			</div>
+		</c:if>
+	</div>
 	</div>
 
 	<script
-		src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js">
+		src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js">
     </script>
 
 	<script>
@@ -299,7 +340,7 @@ body {
                 return;
             }
             
-            const originalHtml = button.innerHTML;
+            var originalHtml = button.innerHTML;
             button.disabled = true;
             button.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Loading...';
 
@@ -309,8 +350,8 @@ body {
                     'Content-Type': 'application/json'
                 }
             })
-            .then(response => response.json())
-            .then(data => {
+            .then(function(response) { return response.json(); })
+            .then(function(data) {
                 if (data.success) {
                     // Toggle button state
                     if (data.following) {
@@ -327,44 +368,43 @@ body {
                     showAlert('danger', data.message || 'Failed to follow/unfollow.');
                 }
             })
-            .catch(error => {
+            .catch(function(error) {
                 console.error('Error:', error);
                 showAlert('danger', 'An error occurred. Please try again.');
             })
-            .finally(() => {
+            .finally(function() {
                 button.disabled = false;
             });
         }
 
         function showAlert(type, message) {
-            const alertContainer = document.getElementById('alertContainer');
-            if (!alertContainer) {
-                // Create alert container if it doesn't exist
-                const container = document.createElement('div');
-                container.id = 'alertContainer';
-                container.className = 'mb-4';
-                document.querySelector('.main-content').prepend(container);
+            var container = document.getElementById('alertContainer');
+            if (!container) {
+                var newContainer = document.createElement('div');
+                newContainer.id = 'alertContainer';
+                newContainer.className = 'mb-4';
+                document.querySelector('.main-content').prepend(newContainer);
+                container = newContainer;
             }
             
-            const alertHtml = `
-                <div class="alert alert-${type} alert-dismissible fade show shadow-sm" 
-                     role="alert" style="border-radius: 12px;">
-                    <div class="d-flex align-items-center gap-2">
-                        <i class="fa-solid ${type === 'success' ? 'fa-circle-check text-success' : 'fa-circle-exclamation text-danger'} fs-5"></i>
-                        <span>${message}</span>
-                    </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            `;
+            var iconClass = type === 'success' ? 'fa-circle-check text-success' : 'fa-circle-exclamation text-danger';
             
-            const container = document.getElementById('alertContainer');
+            var alertHtml = '<div class="alert alert-' + type + ' alert-dismissible fade show shadow-sm" ' +
+                'role="alert" style="border-radius: 12px;">' +
+                '<div class="d-flex align-items-center gap-2">' +
+                '<i class="fa-solid ' + iconClass + ' fs-5"></i>' +
+                '<span>' + message + '</span>' +
+                '</div>' +
+                '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
+                '</div>';
+            
             container.innerHTML = alertHtml;
             
             // Auto dismiss after 3 seconds
-            setTimeout(() => {
-                const alert = container.querySelector('.alert');
+            setTimeout(function() {
+                var alert = container.querySelector('.alert');
                 if (alert) {
-                    const bsAlert = new bootstrap.Alert(alert);
+                    var bsAlert = new bootstrap.Alert(alert);
                     bsAlert.close();
                 }
             }, 3000);
@@ -376,12 +416,29 @@ body {
                 return;
             }
             
-            navigator.clipboard.writeText(content).then(function() {
-                showAlert('success', `"${title}" content copied to clipboard!`);
-            }).catch(function(err) {
-                console.error('Could not copy text: ', err);
-                alert("Copy ကူးယူခြင်း မအောင်မြင်ပါဗျာ။");
-            });
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(content).then(function() {
+                    showAlert('success', '"' + title + '" content copied to clipboard!');
+                }).catch(function(err) {
+                    console.error('Could not copy text: ', err);
+                    alert("Copy ကူးယူခြင်း မအောင်မြင်ပါဗျာ။");
+                });
+            } else {
+                // Fallback for older browsers
+                var textarea = document.createElement('textarea');
+                textarea.value = content;
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                document.body.appendChild(textarea);
+                textarea.select();
+                try {
+                    document.execCommand('copy');
+                    showAlert('success', '"' + title + '" content copied to clipboard!');
+                } catch (err) {
+                    alert("Copy ကူးယူခြင်း မအောင်မြင်ပါဗျာ။");
+                }
+                document.body.removeChild(textarea);
+            }
         }
     </script>
 </body>

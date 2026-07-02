@@ -13,7 +13,7 @@
 
 <!-- Bootstrap 5 CSS -->
 <link
-	href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+	href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css"
 	rel="stylesheet" />
 <!-- Font Awesome -->
 <link rel="stylesheet"
@@ -59,6 +59,11 @@ body {
 	padding: 40px;
 	box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.01);
 	margin-bottom: 24px;
+	transition: all 0.3s ease;
+}
+
+.profile-card:hover {
+	box-shadow: 0px 8px 30px rgba(0, 0, 0, 0.04);
 }
 
 .avatar-circle {
@@ -124,6 +129,25 @@ body {
 .btn-edit-profile:hover {
 	background-color: #333333;
 	color: #ffffff;
+	transform: translateY(-2px);
+	box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.btn-danger-custom {
+	background-color: #dc3545;
+	color: #ffffff;
+	border: none;
+	border-radius: 20px;
+	padding: 10px 28px;
+	font-weight: 600;
+	transition: all 0.2s;
+}
+
+.btn-danger-custom:hover {
+	background-color: #c82333;
+	color: #ffffff;
+	transform: translateY(-2px);
+	box-shadow: 0 4px 15px rgba(220, 53, 69, 0.2);
 }
 
 /* Modal Styles */
@@ -210,6 +234,11 @@ body {
 	outline: none;
 }
 
+.modal-form-control.is-invalid {
+	border-color: #dc3545;
+	background-color: #fff5f5;
+}
+
 .btn-modal-cancel {
 	background-color: transparent;
 	color: #757575;
@@ -217,6 +246,7 @@ body {
 	border-radius: 20px;
 	padding: 10px 28px;
 	font-weight: 600;
+	transition: all 0.2s;
 }
 
 .btn-modal-cancel:hover {
@@ -231,11 +261,107 @@ body {
 	border-radius: 20px;
 	padding: 10px 28px;
 	font-weight: 600;
+	transition: all 0.2s;
 }
 
 .btn-modal-save:hover {
 	background-color: #333333;
 	color: #ffffff;
+	transform: translateY(-2px);
+	box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Alert animations */
+.alert-custom {
+	border-radius: 16px;
+	border: none;
+	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+	animation: slideDown 0.5s ease-out;
+}
+
+@
+keyframes slideDown {from { opacity:0;
+	transform: translateY(-20px);
+}
+
+to {
+	opacity: 1;
+	transform: translateY(0);
+}
+
+}
+
+/* Loading overlay */
+.loading-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: rgba(255, 255, 255, 0.8);
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	z-index: 9999;
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 0.3s;
+}
+
+.loading-overlay.show {
+	opacity: 1;
+	pointer-events: all;
+}
+
+.spinner-custom {
+	width: 50px;
+	height: 50px;
+	border: 4px solid #f0f0f0;
+	border-top: 4px solid #1a1a1a;
+	border-radius: 50%;
+	animation: spin 0.8s linear infinite;
+}
+
+@
+keyframes spin { 0% {
+	transform: rotate(0deg);
+}
+
+100
+
+
+
+
+%
+{
+transform
+
+
+
+
+:
+
+
+
+
+rotate
+
+
+(
+
+
+
+
+360deg
+
+
+
+
+)
+
+
+;
+}
 }
 
 /* Responsive */
@@ -262,10 +388,33 @@ body {
 	.stat-number {
 		font-size: 1rem;
 	}
+	.avatar-circle, .avatar-img {
+		width: 80px;
+		height: 80px;
+		font-size: 2rem;
+	}
+	.avatar-container {
+		width: 80px;
+		height: 80px;
+	}
+	.profile-avatar {
+		width: 80px;
+		height: 80px;
+	}
+	.upload-badge {
+		width: 30px;
+		height: 30px;
+		font-size: 0.8rem;
+	}
 }
 </style>
 </head>
 <body>
+
+	<!-- Loading Overlay -->
+	<div class="loading-overlay" id="loadingOverlay">
+		<div class="spinner-custom"></div>
+	</div>
 
 	<!-- Include sidebar with active page parameter -->
 	<jsp:include page="sidebar.jsp">
@@ -282,20 +431,35 @@ body {
 				<h3 class="page-title">
 					<i class="fa-regular fa-user me-2"></i>My Profile
 				</h3>
-				<p class="text-muted small mt-1">Manage your account information
-					and preferences</p>
+				<p class="text-muted small mt-1">
+					<i class="fa-regular fa-circle-info me-1"></i> Manage your account
+					information and preferences
+				</p>
+			</div>
+			<div class="d-flex gap-2 mt-2 mt-md-0">
+				<a href="${pageContext.request.contextPath}/dashboard"
+					class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-semibold">
+					<i class="fa-solid fa-arrow-left me-1"></i> Dashboard
+				</a>
+				<button onclick="location.reload()"
+					class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold">
+					<i class="fa-solid fa-rotate me-1"></i> Refresh
+				</button>
 			</div>
 		</div>
 
 		<!-- Check if user exists -->
 		<c:choose>
 			<c:when test="${empty user}">
-				<div class="alert alert-warning shadow-sm mb-4" role="alert"
-					style="border-radius: 16px;">
-					<i class="fa-solid fa-triangle-exclamation me-2"></i> User
-					information not available. Please <a
-						href="${pageContext.request.contextPath}/login" class="alert-link">login</a>
-					again.
+				<div class="alert alert-warning shadow-sm mb-4 alert-custom"
+					role="alert">
+					<div class="d-flex align-items-center gap-2">
+						<i class="fa-solid fa-triangle-exclamation text-warning fs-5"></i>
+						<span>User information not available. Please <a
+							href="${pageContext.request.contextPath}/login"
+							class="alert-link fw-semibold">login</a> again.
+						</span>
+					</div>
 				</div>
 			</c:when>
 			<c:otherwise>
@@ -303,25 +467,35 @@ body {
 				<!-- Success Message -->
 				<c:if test="${not empty successMsg}">
 					<div
-						class="alert alert-success alert-dismissible fade show shadow-sm mb-4"
-						role="alert"
-						style="border-radius: 16px; border: 1px solid #d4edda;">
-						<i class="fa-solid fa-circle-check me-2"></i> ${successMsg}
+						class="alert alert-success alert-dismissible fade show shadow-sm mb-4 alert-custom"
+						role="alert">
+						<div class="d-flex align-items-center gap-2">
+							<i class="fa-solid fa-circle-check text-success fs-5"></i> <span
+								class="fw-semibold">${successMsg}</span>
+						</div>
 						<button type="button" class="btn-close" data-bs-dismiss="alert"
 							aria-label="Close"></button>
 					</div>
+					<%
+					session.removeAttribute("successMsg");
+					%>
 				</c:if>
 
 				<!-- Error Message -->
 				<c:if test="${not empty errorMsg}">
 					<div
-						class="alert alert-danger alert-dismissible fade show shadow-sm mb-4"
-						role="alert"
-						style="border-radius: 16px; border: 1px solid #f8d7da;">
-						<i class="fa-solid fa-circle-exclamation me-2"></i> ${errorMsg}
+						class="alert alert-danger alert-dismissible fade show shadow-sm mb-4 alert-custom"
+						role="alert">
+						<div class="d-flex align-items-center gap-2">
+							<i class="fa-solid fa-circle-exclamation text-danger fs-5"></i> <span
+								class="fw-semibold">${errorMsg}</span>
+						</div>
 						<button type="button" class="btn-close" data-bs-dismiss="alert"
 							aria-label="Close"></button>
 					</div>
+					<%
+					session.removeAttribute("errorMsg");
+					%>
 				</c:if>
 
 				<!-- Profile Card -->
@@ -360,6 +534,13 @@ body {
 									class="badge ${user.role eq 'admin' ? 'bg-danger' : 'bg-secondary'} rounded-pill px-3 py-1.5 text-uppercase"
 									style="font-size: 0.7rem; font-weight: 600;"> ${not empty user.role ? user.role : 'User'}
 								</span>
+								<c:if test="${user.status eq 'suspended'}">
+									<span
+										class="badge bg-warning text-dark rounded-pill px-3 py-1.5 text-uppercase"
+										style="font-size: 0.7rem; font-weight: 600;"> <i
+										class="fa-solid fa-ban me-1"></i> Suspended
+									</span>
+								</c:if>
 							</div>
 
 							<div class="d-flex flex-wrap gap-3 mb-3">
@@ -369,6 +550,13 @@ body {
 								<c:if test="${not empty user.phone}">
 									<span class="text-muted" style="font-size: 0.95rem;"> <i
 										class="fa-regular fa-phone me-2"></i>${user.phone}
+									</span>
+								</c:if>
+								<c:if
+									test="${user.status eq 'suspended' and not empty user.suspensionReason}">
+									<span class="text-muted" style="font-size: 0.95rem;"> <i
+										class="fa-regular fa-circle-exclamation me-2 text-warning"></i>
+										Reason: ${user.suspensionReason}
 									</span>
 								</c:if>
 							</div>
@@ -395,6 +583,13 @@ body {
 								data-bs-toggle="modal" data-bs-target="#editProfileModal">
 								<i class="fa-regular fa-pen-to-square me-2"></i>Edit Profile
 							</button>
+							<c:if test="${user.role eq 'admin'}">
+								<button type="button"
+									class="btn-danger-custom mt-2 mt-md-0 ms-md-2"
+									onclick="window.location.href='${pageContext.request.contextPath}/admin/dashboard'">
+									<i class="fa-solid fa-shield-halved me-2"></i>Admin Panel
+								</button>
+							</c:if>
 						</div>
 					</div>
 				</div>
@@ -408,9 +603,9 @@ body {
 						<div class="col-md-6">
 							<div class="d-flex justify-content-between py-2 border-bottom"
 								style="border-color: #f5f5f5 !important;">
-								<span class="text-muted" style="font-size: 0.9rem;">Member
-									Since</span> <span class="fw-medium" style="font-size: 0.9rem;">
-									<c:choose>
+								<span class="text-muted" style="font-size: 0.9rem;"> <i
+									class="fa-regular fa-calendar-plus me-2"></i>Member Since
+								</span> <span class="fw-medium" style="font-size: 0.9rem;"> <c:choose>
 										<c:when test="${not empty user.createdAt}">
 											<fmt:parseDate value="${user.createdAt}"
 												pattern="yyyy-MM-dd'T'HH:mm:ss" var="parsedCreated" />
@@ -425,18 +620,22 @@ body {
 						<div class="col-md-6">
 							<div class="d-flex justify-content-between py-2 border-bottom"
 								style="border-color: #f5f5f5 !important;">
-								<span class="text-muted" style="font-size: 0.9rem;">Account
-									Status</span> <span class="fw-medium text-success"
+								<span class="text-muted" style="font-size: 0.9rem;"> <i
+									class="fa-regular fa-circle-check me-2"></i>Account Status
+								</span> <span
+									class="fw-medium ${user.status eq 'active' ? 'text-success' : 'text-warning'}"
 									style="font-size: 0.9rem;"> <i
-									class="fa-solid fa-circle-check me-1"></i>Active
+									class="fa-solid ${user.status eq 'active' ? 'fa-circle-check' : 'fa-ban'} me-1"></i>
+									${user.status eq 'active' ? 'Active' : user.status}
 								</span>
 							</div>
 						</div>
 						<div class="col-md-6">
 							<div class="d-flex justify-content-between py-2 border-bottom"
 								style="border-color: #f5f5f5 !important;">
-								<span class="text-muted" style="font-size: 0.9rem;">User
-									ID</span> <span class="fw-medium" style="font-size: 0.9rem;"> <c:choose>
+								<span class="text-muted" style="font-size: 0.9rem;"> <i
+									class="fa-regular fa-id-card me-2"></i>User ID
+								</span> <span class="fw-medium" style="font-size: 0.9rem;"> <c:choose>
 										<c:when test="${not empty user.userId}">
                                             #${user.userId}
                                         </c:when>
@@ -448,11 +647,44 @@ body {
 						<div class="col-md-6">
 							<div class="d-flex justify-content-between py-2 border-bottom"
 								style="border-color: #f5f5f5 !important;">
-								<span class="text-muted" style="font-size: 0.9rem;">Total
-									Sheets</span> <span class="fw-medium" style="font-size: 0.9rem;">${sheetCount != null ? sheetCount : 0}</span>
+								<span class="text-muted" style="font-size: 0.9rem;"> <i
+									class="fa-regular fa-file-lines me-2"></i>Total Sheets
+								</span> <span class="fw-medium" style="font-size: 0.9rem;">${sheetCount != null ? sheetCount : 0}</span>
 							</div>
 						</div>
 					</div>
+				</div>
+
+				<!-- Quick Actions -->
+				<div class="profile-card">
+					<h5 class="fw-bold mb-3" style="font-size: 1rem;">
+						<i class="fa-regular fa-bolt me-2"></i>Quick Actions
+					</h5>
+					<div class="d-flex flex-wrap gap-2">
+						<a href="${pageContext.request.contextPath}/cheatsheets/new"
+							class="btn btn-outline-dark rounded-pill px-4 py-2 fw-semibold">
+							<i class="fa-solid fa-plus me-2"></i>Create New Sheet
+						</a> <a
+							href="${pageContext.request.contextPath}/cheatsheets/my-sheets"
+							class="btn btn-outline-dark rounded-pill px-4 py-2 fw-semibold">
+							<i class="fa-regular fa-file-lines me-2"></i>My Sheets
+						</a> <a
+							href="${pageContext.request.contextPath}/user/following/${user.userId}"
+							class="btn btn-outline-dark rounded-pill px-4 py-2 fw-semibold">
+							<i class="fa-regular fa-users me-2"></i>Following
+						</a>
+						<button type="button"
+							class="btn btn-outline-danger rounded-pill px-4 py-2 fw-semibold"
+							onclick="if(confirm('Are you sure you want to delete your account? This action cannot be undone.')) { 
+                                    document.getElementById('deleteAccountForm').submit(); }">
+							<i class="fa-solid fa-trash-can me-2"></i>Delete Account
+						</button>
+					</div>
+					<form id="deleteAccountForm"
+						action="${pageContext.request.contextPath}/profile/delete-account"
+						method="POST" style="display: none;">
+						<input type="hidden" name="confirm" value="true" />
+					</form>
 				</div>
 			</c:otherwise>
 		</c:choose>
@@ -472,8 +704,10 @@ body {
 						aria-label="Close"></button>
 				</div>
 
-				<form action="${pageContext.request.contextPath}/profile/update"
-					method="POST" enctype="multipart/form-data">
+				<form id="editProfileForm"
+					action="${pageContext.request.contextPath}/profile/update"
+					method="POST" enctype="multipart/form-data"
+					onsubmit="return validateProfileForm()">
 					<div class="modal-body modal-body-custom">
 						<!-- Avatar Upload -->
 						<div class="text-center mb-4">
@@ -505,37 +739,49 @@ body {
 								style="font-size: 0.7rem; font-weight: 600;"> ${not empty user.role ? user.role : 'User'}
 							</span>
 							<p class="text-muted small mt-2 mb-0">
-								<i class="fa-regular fa-circle-info me-1"></i>Click the camera
-								icon to change your photo
+								<i class="fa-regular fa-circle-info me-1"></i> Click the camera
+								icon to change your photo (Max 5MB)
 							</p>
 						</div>
 
 						<!-- Form Fields -->
 						<div class="row g-3">
 							<div class="col-12">
-								<label class="modal-form-label">Username</label> <input
-									type="text" name="username"
+								<label class="modal-form-label"> <i
+									class="fa-regular fa-user me-1"></i>Username
+								</label> <input type="text" name="username" id="editUsername"
 									class="form-control modal-form-control"
 									value="${user.username}" required />
+								<div class="invalid-feedback">Username is required</div>
 							</div>
 							<div class="col-12">
-								<label class="modal-form-label">Email Address</label> <input
-									type="email" name="email"
+								<label class="modal-form-label"> <i
+									class="fa-regular fa-envelope me-1"></i>Email Address
+								</label> <input type="email" name="email" id="editEmail"
 									class="form-control modal-form-control" value="${user.email}"
 									required />
+								<div class="invalid-feedback">Please enter a valid email
+									address</div>
 							</div>
 							<div class="col-12">
-								<label class="modal-form-label">Phone Number</label> <input
-									type="text" name="phone"
+								<label class="modal-form-label"> <i
+									class="fa-regular fa-phone me-1"></i>Phone Number
+								</label> <input type="text" name="phone" id="editPhone"
 									class="form-control modal-form-control" value="${user.phone}"
 									placeholder="Enter your phone number" />
 							</div>
 							<div class="col-12">
-								<label class="modal-form-label">New Password <span
+								<label class="modal-form-label"> <i
+									class="fa-solid fa-lock me-1"></i>New Password <span
 									class="text-muted fw-normal">(leave blank to keep
-										current)</span></label> <input type="password" name="password"
+										current)</span>
+								</label> <input type="password" name="password" id="editPassword"
 									class="form-control modal-form-control"
-									placeholder="Enter new password" />
+									placeholder="Enter new password (min 6 characters)" />
+								<div class="form-text">
+									<i class="fa-regular fa-circle-info me-1"></i> Password must be
+									at least 6 characters
+								</div>
 							</div>
 						</div>
 					</div>
@@ -545,7 +791,7 @@ body {
 							data-bs-dismiss="modal">
 							<i class="fa-regular fa-xmark me-1"></i>Cancel
 						</button>
-						<button type="submit" class="btn-modal-save">
+						<button type="submit" class="btn-modal-save" id="saveProfileBtn">
 							<i class="fa-regular fa-floppy-disk me-1"></i>Save Changes
 						</button>
 					</div>
@@ -556,34 +802,133 @@ body {
 
 	<!-- Bootstrap JS -->
 	<script
-		src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js">
-		
-	</script>
+		src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 
 	<script>
-		// Image preview for profile upload
-		document.getElementById('profileImageInput').onchange = function(evt) {
-			var tgt = evt.target || window.event.srcElement;
-			var files = tgt.files;
-			if (FileReader && files && files.length) {
-				var fr = new FileReader();
-				fr.onload = function() {
-					document.getElementById('profilePreview').src = fr.result;
-				}
-				fr.readAsDataURL(files[0]);
-			}
+		/**
+		 * Show loading overlay
+		 */
+		function showLoading() {
+			document.getElementById('loadingOverlay').classList.add('show');
 		}
 
-		// Auto-dismiss alerts after 5 seconds
-		document.addEventListener('DOMContentLoaded', function() {
-			const alerts = document.querySelectorAll('.alert');
-			alerts.forEach(function(alert) {
-				setTimeout(function() {
-					const bsAlert = new bootstrap.Alert(alert);
-					bsAlert.close();
-				}, 5000);
-			});
-		});
+		/**
+		 * Hide loading overlay
+		 */
+		function hideLoading() {
+			document.getElementById('loadingOverlay').classList.remove('show');
+		}
+
+		/**
+		 * Image preview for profile upload
+		 */
+		document
+				.getElementById('profileImageInput')
+				.addEventListener(
+						'change',
+						function(evt) {
+							var tgt = evt.target || window.event.srcElement;
+							var files = tgt.files;
+							if (FileReader && files && files.length) {
+								var file = files[0];
+								// Validate file size (max 5MB)
+								if (file.size > 5 * 1024 * 1024) {
+									alert('⚠️ Image size exceeds 5MB limit. Please choose a smaller image.');
+									this.value = '';
+									return;
+								}
+								// Validate file type
+								if (!file.type.startsWith('image/')) {
+									alert('⚠️ Please select an image file.');
+									this.value = '';
+									return;
+								}
+								var fr = new FileReader();
+								fr.onload = function() {
+									document.getElementById('profilePreview').src = fr.result;
+								}
+								fr.readAsDataURL(file);
+							}
+						});
+
+		/**
+		 * Validate profile form before submission
+		 */
+		function validateProfileForm() {
+			var username = document.getElementById('editUsername');
+			var email = document.getElementById('editEmail');
+			var password = document.getElementById('editPassword');
+			var isValid = true;
+
+			// Reset validation
+			username.classList.remove('is-invalid');
+			email.classList.remove('is-invalid');
+			password.classList.remove('is-invalid');
+
+			// Validate username
+			if (!username.value.trim()) {
+				username.classList.add('is-invalid');
+				isValid = false;
+			}
+
+			// Validate email
+			var emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+			if (!email.value.trim() || !emailPattern.test(email.value.trim())) {
+				email.classList.add('is-invalid');
+				isValid = false;
+			}
+
+			// Validate password (if provided)
+			if (password.value.trim() && password.value.trim().length < 6) {
+				password.classList.add('is-invalid');
+				isValid = false;
+				alert('⚠️ Password must be at least 6 characters.');
+			}
+
+			if (!isValid) {
+				alert('⚠️ Please fix the highlighted fields.');
+				return false;
+			}
+
+			// Show loading overlay
+			showLoading();
+			return true;
+		}
+
+		/**
+		 * Auto-dismiss alerts after 5 seconds
+		 */
+		document
+				.addEventListener(
+						'DOMContentLoaded',
+						function() {
+							var alerts = document
+									.querySelectorAll('.alert:not(.alert-custom)');
+							alerts.forEach(function(alert) {
+								setTimeout(function() {
+									var bsAlert = new bootstrap.Alert(alert);
+									bsAlert.close();
+								}, 5000);
+							});
+
+							// Handle form submission completion
+							var form = document
+									.getElementById('editProfileForm');
+							if (form) {
+								form
+										.addEventListener(
+												'submit',
+												function() {
+													var submitBtn = document
+															.getElementById('saveProfileBtn');
+													submitBtn.disabled = true;
+													submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i>Saving...';
+												});
+							}
+
+							console
+									.log('Profile page initialized successfully');
+						});
 	</script>
 </body>
 </html>

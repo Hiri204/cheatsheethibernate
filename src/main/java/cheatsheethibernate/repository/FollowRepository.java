@@ -31,7 +31,7 @@ public class FollowRepository {
 	/**
 	 * Find follow by follower and following
 	 */
-	public Follow findByFollowerAndFollowing(Long followerId, Long followingId) {
+	public Follow findByFollowerAndFollowing(Integer followerId, Integer followingId) {
 		String hql = "FROM Follow f WHERE f.follower.userId = :followerId AND f.following.userId = :followingId";
 		try {
 			return sessionFactory.getCurrentSession().createQuery(hql, Follow.class)
@@ -44,7 +44,7 @@ public class FollowRepository {
 	/**
 	 * Check if a user is following another user
 	 */
-	public boolean isFollowing(Long followerId, Long followingId) {
+	public boolean isFollowing(Integer followerId, Integer followingId) {
 		String hql = "SELECT COUNT(f) FROM Follow f WHERE f.follower.userId = :followerId AND f.following.userId = :followingId";
 		Long count = sessionFactory.getCurrentSession().createQuery(hql, Long.class)
 				.setParameter("followerId", followerId).setParameter("followingId", followingId).uniqueResult();
@@ -54,7 +54,7 @@ public class FollowRepository {
 	/**
 	 * Count followers of a user
 	 */
-	public long countFollowers(Long userId) {
+	public long countFollowers(Integer userId) {
 		String hql = "SELECT COUNT(f) FROM Follow f WHERE f.following.userId = :userId";
 		Long count = sessionFactory.getCurrentSession().createQuery(hql, Long.class).setParameter("userId", userId)
 				.uniqueResult();
@@ -64,7 +64,7 @@ public class FollowRepository {
 	/**
 	 * Count following of a user
 	 */
-	public long countFollowing(Long userId) {
+	public long countFollowing(Integer userId) {
 		String hql = "SELECT COUNT(f) FROM Follow f WHERE f.follower.userId = :userId";
 		Long count = sessionFactory.getCurrentSession().createQuery(hql, Long.class).setParameter("userId", userId)
 				.uniqueResult();
@@ -74,7 +74,7 @@ public class FollowRepository {
 	/**
 	 * Get all followers of a user
 	 */
-	public List<User> getFollowers(Long userId) {
+	public List<User> getFollowers(Integer userId) {
 		String hql = "SELECT f.follower FROM Follow f WHERE f.following.userId = :userId ORDER BY f.createdAt DESC";
 		return sessionFactory.getCurrentSession().createQuery(hql, User.class).setParameter("userId", userId)
 				.getResultList();
@@ -83,7 +83,7 @@ public class FollowRepository {
 	/**
 	 * Get all users that a user is following
 	 */
-	public List<User> getFollowing(Long userId) {
+	public List<User> getFollowing(Integer userId) {
 		String hql = "SELECT f.following FROM Follow f WHERE f.follower.userId = :userId ORDER BY f.createdAt DESC";
 		return sessionFactory.getCurrentSession().createQuery(hql, User.class).setParameter("userId", userId)
 				.getResultList();
@@ -92,10 +92,19 @@ public class FollowRepository {
 	/**
 	 * Delete follow by follower and following IDs
 	 */
-	public void deleteByFollowerAndFollowing(Long followerId, Long followingId) {
+	public void deleteByFollowerAndFollowing(Integer followerId, Integer followingId) {
 		String hql = "DELETE FROM Follow f WHERE f.follower.userId = :followerId AND f.following.userId = :followingId";
 		sessionFactory.getCurrentSession().createQuery(hql).setParameter("followerId", followerId)
 				.setParameter("followingId", followingId).executeUpdate();
+	}
+
+	/**
+	 * Delete all follows involving a user (both as follower and following) This is
+	 * used when deleting a user account
+	 */
+	public void deleteAllByUser(Integer userId) {
+		String hql = "DELETE FROM Follow f WHERE f.follower.userId = :userId OR f.following.userId = :userId";
+		sessionFactory.getCurrentSession().createQuery(hql).setParameter("userId", userId).executeUpdate();
 	}
 
 	/**
